@@ -39,7 +39,7 @@ def list(user_id):
     if (start_id is not None and end_id is not None):
         # Check for end_id >= start_id?
         try:
-            messages = Message.select().where(Message.id >= int(start_id) and Message.id <= int(end_id))
+            messages = Message.select().where(Message.id >= int(start_id) and Message.id <= int(end_id)).order_by(Message.date)
         except Message.DoesNotExist:
             abort(404)
 
@@ -50,13 +50,17 @@ def list(user_id):
 # def list_unread(user_id):
 #     return jsonify([m.json() for m in messages if m.user_id == user_id and m.read == False])
 
-# @app.route('/users/<int:user_id>/messages/read/', methods = ['POST'])
-# def read(user_id):
-#     unread = [m for m in messages if m.user_id == user_id and m.read == False]
-#     for m in unread:
-#         m.read = True
+@app.route('/users/<int:user_id>/messages/read', methods = ['POST'])
+def read(user_id):
+    user = get_user(user_id)
+    unread_messages = [model_to_dict(m) for m in user.messages.select().where(Message.read == False)]
 
-#     return jsonify([m.json() for m in unread])
+    # Set messages to read. Not very atomic?
+    if (unread_messages.count() > 0):
+        query = Message.update(read=True).where(Message.receiver == user_id and Message.read == False)
+        query.execute()
+
+    return jsonify(unread_messages)
 
 # @app.route('/message/<int:message_id>/', methods = ['GET'])
 # def detail(message_id):
@@ -77,11 +81,17 @@ def send(user_id):
     return jsonify(model_to_dict(m)), 201
 
 
-# @app.route('/message/<int:message_id>/', methods = ['DELETE'])
-# def delete(message_id):
-#     message = find_message(message_id)
-#     messages.remove(message)
-#     return jsonify({'result': True})
+# Add semi-colon separated list of message ids. Delete for a user? Add user_id?
+@app.route('/messages/<int:message_id>', methods = ['DELETE'])
+def delete(message_id):
+    try:
+        message = Message.get(id=message_id)
+    except Message.DoesNotExist:
+        abort(404)
+
+    message.delete_instance()
+    
+    return jsonify({'result': True})
 
 
 @app.errorhandler(404)
