@@ -11,6 +11,9 @@ class User(Model):
 	class Meta:
 		database = db
 
+	def dict(self):
+		return { 'id': self.id, 'mail': self.mail }
+
 class Message(Model):
 	text = CharField()
 	date = DateTimeField()
@@ -22,3 +25,6 @@ class Message(Model):
 
 	class Meta:
 		database = db
+
+	def dict(self):
+		return { 'id': self.id, 'text': self.text, 'date': self.date, 'user_id': self.receiver.id, 'read': self.read }
