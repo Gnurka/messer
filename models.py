@@ -12,7 +12,8 @@ class User(Model):
 		database = db
 
 	def dict(self):
-		return { 'id': self.id, 'mail': self.mail }
+		return { 	'id': self.id, 
+					'mail': self.mail }
 
 class Message(Model):
 	text = CharField()
@@ -27,4 +28,8 @@ class Message(Model):
 		database = db
 
 	def dict(self):
-		return { 'id': self.id, 'text': self.text, 'date': self.date, 'user_id': self.receiver.id, 'read': self.read }
+		return {	'id': self.id, 
+					'text': self.text, 
+					'date': self.date, 
+					'user_id': self.receiver.id, 
+					'read': self.read }
