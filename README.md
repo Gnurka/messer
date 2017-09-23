@@ -2,8 +2,8 @@
 Message RESTful web service
 
 ## Usage:
-Start local server with:
-python app.py
+Start local server with:  
+`python app.py`
 
 and it can be accessed at http://localhost:5555/
 
