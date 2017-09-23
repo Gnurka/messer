@@ -3,7 +3,6 @@ The Messer message web service
 
 TODO:
 * Add URI:s?
-* Add ways to list users and create them?
 
 """
 from datetime import datetime
@@ -43,14 +42,14 @@ def list(user_id):
         except Message.DoesNotExist:
             abort(404)
 
-    return jsonify([model_to_dict(m) for m in messages])
+    return jsonify([model_to_dict(m, recurse=False) for m in messages])
 
 
 # Get unread messages and mark them as read. Ex: POST /users/1/messages/read
 @app.route('/users/<int:user_id>/messages/read', methods = ['POST'])
 def read(user_id):
     user = get_object_or_404(User, user_id)
-    unread_messages = [model_to_dict(m) for m in user.messages.select().where(Message.read == False)]
+    unread_messages = [model_to_dict(m, recurse=False) for m in user.messages.select().where(Message.read == False)]
 
     # Set messages to read. Not very atomic?
     if (len(unread_messages) > 0):
@@ -71,7 +70,7 @@ def send(user_id):
 
     m = Message.create(text = text, date = datetime.now(), read = False, receiver = u)
 
-    return jsonify(model_to_dict(m)), 201
+    return jsonify(model_to_dict(m, recurse=False)), 201
 
 
 # Add semi-colon separated list of message ids. Ex: DELETE /messages/1;2;3
@@ -92,6 +91,46 @@ def delete(message_ids):
         message.delete_instance()
     
     return jsonify({'result': True})
+
+
+# User operations:
+
+# Get list of users. Ex: GET /users
+@app.route('/users', methods = ['GET'])
+def list_users():
+    users = [model_to_dict(u) for u in User.select()]
+    return jsonify(users)
+
+
+# Search users. Ex: GET /users/search?mail=gustav
+@app.route('/users/search', methods = ['GET'])
+def search_users():
+    mail = request.args.get('mail')
+    if mail is None:
+        abort(400)
+
+    users = [model_to_dict(u) for u in User.select().where(User.mail.contains(mail))]
+    return jsonify(users)
+
+
+# Add a user. Ex: POST /users
+@app.route('/users', methods = ['POST'])
+def add_user():
+    mail = request.form['mail']
+
+    if mail is None:
+        abort(400)
+
+    user = User.create(mail = mail)
+
+    return jsonify(model_to_dict(user))
+
+
+# Get information about a user. Ex: GET /users/1
+@app.route('/users/<int:user_id>', methods = ['GET'])
+def get_user(user_id):
+    user = get_object_or_404(User, user_id)
+    return jsonify(model_to_dict(user))
 
 
 @app.errorhandler(404)
