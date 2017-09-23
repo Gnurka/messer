@@ -1,5 +1,9 @@
 # messer
-Message RESTful web service
+Message RESTful web service. 
+
+## Requirements
+* Flask: http://flask.pocoo.org/
+* Peewee: http://docs.peewee-orm.com/
 
 ## Usage:
 Start local server with:  
