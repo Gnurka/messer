@@ -53,7 +53,7 @@ def read(user_id):
 
     # Set messages to read. Not very atomic?
     if (len(unread_messages) > 0):
-        query = Message.update(read=True).where(Message.receiver == user_id and Message.read == False)
+        query = Message.update(read=True).where(Message.receiver == user_id & Message.read == False)
         query.execute()
 
     return jsonify(unread_messages)
@@ -87,6 +87,7 @@ def delete(message_ids):
     for id in id_list:
         message_list.append(get_object_or_404(Message, id))
 
+    # TODO: Perhaps a single transaction instead!?
     for message in message_list:
         message.delete_instance()
     
