@@ -3,6 +3,7 @@ The Messer message web service
 
 TODO:
 * Add URI:s?
+* Add error messages for 400 responses
 
 """
 from datetime import datetime
@@ -22,6 +23,13 @@ def get_object_or_404(object, object_id):
         return object.get(id = object_id)
     except object.DoesNotExist:
         abort(404)
+
+
+# Get message. Ex: GET /messages/1
+@app.route('/messages/<int:message_id>', methods = ['GET'])
+def get_message(message_id):
+    message = get_object_or_404(Message, message_id)
+    return jsonify(model_to_dict(message))
 
 
 # TODO: Check for each of the filters. Maybe make into one instead like ?range=1,3
@@ -70,11 +78,12 @@ def send(user_id):
 
     m = Message.create(text = text, date = datetime.now(), read = False, receiver = u)
 
-    return jsonify(model_to_dict(m, recurse=False)), 201
+    return jsonify(model_to_dict(m, recurse=False)), 201, {'location': url_for('get_message', message_id = m.id)}
 
 
 # Add semi-colon separated list of message ids. Ex: DELETE /messages/1;2;3
 # TODO: Add users to route?
+# TODO: Return empty body. 
 @app.route('/messages/<string:message_ids>', methods = ['DELETE'])
 def delete(message_ids):
     try:
